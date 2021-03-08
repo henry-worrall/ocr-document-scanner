@@ -2,6 +2,10 @@
 # python ocr_form.py --image scans/scan_01.jpg --template form_w4.png
 
 # import the necessary packages
+
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+
 from pyimagesearch.alignment import align_images
 from collections import namedtuple
 import pytesseract
@@ -12,7 +16,7 @@ import cv2
 def cleanup_text(text):
 	# strip out non-ASCII text so we can draw the text on the image
 	# using OpenCV
-	return "".join([c if ord(c) < 128 else "" for c in text]).strip()
+    return "".join([c if ord(c) < 128 else "" for c in text]).strip()
 
 # construct the argument parser and parse the arguments
 # ap = argparse.ArgumentParser()
@@ -65,57 +69,62 @@ parsingResults = []
 # loop over the locations of the document we are going to OCR
 for loc in OCR_LOCATIONS:
 	# extract the OCR ROI from the aligned image
-	(x, y, w, h) = loc.bbox
-	roi = aligned[y:y + h, x:x + w]
+    (x, y, w, h) = loc.bbox
+    roi = aligned[y:y + h, x:x + w]
 
 	# OCR the ROI using Tesseract
-	rgb = cv2.cvtColor(roi, cv2.COLOR_BGR2RGB)
-	text = pytesseract.image_to_string(rgb)
+    rgb = cv2.cvtColor(roi, cv2.COLOR_BGR2RGB)
+    text = pytesseract.image_to_string(rgb)
 
 	# break the text into lines and loop over them
-	for line in text.split("\n"):
+    for line in text.split("\n"):
 		# if the line is empty, ignore it
-		if len(line) == 0:
-			continue
+        if len(line) == 0:
+            continue
 
 		# convert the line to lowercase and then check to see if the
 		# line contains any of the filter keywords (these keywords
 		# are part of the *form itself* and should be ignored)
-		lower = line.lower()
-		count = sum([lower.count(x) for x in loc.filter_keywords])
+        lower = line.lower()
+        count = sum([lower.count(x) for x in loc.filter_keywords])
 
 		# if the count is zero than we know we are *not* examining a
 		# text field that is part of the document itself (ex., info,
 		# on the field, an example, help text, etc.)
-		if count == 0:
+        if count == 0:
 			# update our parsing results dictionary with the OCR'd
 			# text if the line is *not* empty
-			parsingResults.append((loc, line))
+            parsingResults.append((loc, line))
 
 # initialize a dictionary to store our final OCR results
 results = {}
 
+# Liz trial
+Liz = []
+
 # loop over the results of parsing the document
 for (loc, line) in parsingResults:
 	# grab any existing OCR result for the current ID of the document
-	r = results.get(loc.id, None)
+    r = results.get(loc.id, None)
 
 	# if the result is None, initialize it using the text and location
 	# namedtuple (converting it to a dictionary as namedtuples are not
 	# hashable)
-	if r is None:
-		results[loc.id] = (line, loc._asdict())
+    if r is None:
+        results[loc.id] = (line, loc._asdict())
 
 	# otherwise, there exists a OCR result for the current area of the
 	# document, so we should append our existing line
-	else:
+    else:
 		# unpack the existing OCR result and append the line to the
 		# existing text
-		(existingText, loc) = r
-		text = "{}\n{}".format(existingText, line)
+        (existingText, loc) = r
+        text = "{}\n{}".format(existingText, line)
+        
+        Liz.append(text)
 
 		# update our results dictionary
-		results[loc["id"]] = (text, loc)
+        results[loc["id"]] = (text, loc)
 
 # loop over the results
 for (locID, result) in results.items():
@@ -148,3 +157,24 @@ for (locID, result) in results.items():
 cv2.imshow("Input", imutils.resize(image, width=700))
 cv2.imshow("Output", imutils.resize(aligned, width=700))
 cv2.waitKey(0)
+
+# Store output in a text file
+with open('total_output_text.txt', 'w') as f:
+    for item in Liz:
+        f.write("%s\n" % item)
+
+
+# Function checking if text file contains a certain keyword
+def check_keyword(inp, text_list):
+    
+    if inp in text_list:
+        with open('key_output.txt', 'w') as f:
+            f.write(inp)
+        
+    for i in range(len(text_list)):
+        if inp in text_list[i]:
+            with open('key_output.txt', 'w') as f:
+                f.write(inp)
+
+# Example
+#check_keyword('Adrian', Liz)
