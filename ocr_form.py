@@ -3,7 +3,6 @@
 
 # import the necessary packages
 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 
 from pyimagesearch.alignment import align_images
@@ -12,6 +11,8 @@ import pytesseract
 import argparse
 import imutils
 import cv2
+
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 def cleanup_text(text):
 	# strip out non-ASCII text so we can draw the text on the image
